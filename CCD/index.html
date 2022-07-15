@@ -1,0 +1,74 @@
+﻿<html>
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="stuff/css/style.css" />
+        <title>Coding Cloud Development</title>
+    </head>
+    <body>
+        <header class="header">
+            <h1 class="logo"><a href="#">Coding Cloud Development</a></h1>
+            <ul class="main-nav">
+                <li><a class="active">Home</a></li>
+                <li><a>Forum</a></li>
+                <li><a>Order</a></li>
+                <li><a>Account</a></li>
+                <li><input type="search" placeholder="Search..." /></li>
+            </ul>
+        </header>
+
+        <div id="home">Home</div>
+        <div style="display:none;" id="forum">
+            <input id="tpcbox" placeholder="Topic..." />
+            <input id="msgbox" placeholder="Write..." />
+            <button id="msgbtn">Send</button>
+            <hr />
+            <p id="msgs"></p>
+        </div>
+        <div style="display:none;" id="order">Order</div>
+        <div style="display:none;" id="account">Account</div>
+    </body>
+</html>
+<script src="stuff/js/script.js"></script>
+<script src="stuff/js/navbar-handler.js"></script>
+<script src="jquery-3.6.0.min.js"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.9.0/firebase-analytics.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7ETY2VARKsxGBX4o7ufBf3rzYfL01BUM",
+        authDomain: "coding-cloud-development.firebaseapp.com",
+        projectId: "coding-cloud-development",
+        storageBucket: "coding-cloud-development.appspot.com",
+        messagingSenderId: "629845997961",
+        appId: "1:629845997961:web:2e3b62f086760e5012c958",
+        measurementId: "G-KBYV7TFPB9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    import { getDatabase, ref, set, child, update, remove, get }
+        from "https://www.gstatic.com/firebasejs/9.9.0/firebase-database.js";
+
+    const db = getDatabase();
+
+    var msgbox = document.getElementById("msgbox");
+    var msgbtn = document.getElementById("msgbtn");
+    var msgs = document.getElementById("msgs");
+
+    function insertData() {
+        set(ref(db, "messages/" + tpcbox.value), {
+            Message: msgbox.value,
+            Topic: tpcbox.value,
+        })
+            .then(() => {
+                alert("Success!");
+            })
+            .catch((error) => {
+                alert("Unsuccessfull, " + error + "!");
+            })
+    }
+
+    msgbtn.addEventListener("click", insertData);
+</script>
