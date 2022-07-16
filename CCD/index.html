@@ -1,5 +1,6 @@
 ﻿<html>
     <head>
+        <meta name="google-signin-client_id" content="629845997961-k0um0em66n9e21mmjp05mevdtsf2i9bg.apps.googleusercontent.com" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="stuff/css/style.css" />
         <title>Coding Cloud Development</title>
@@ -12,20 +13,29 @@
                 <li><a>Forum</a></li>
                 <li><a>Order</a></li>
                 <li><a>Account</a></li>
-                <li><input type="search" placeholder="Search..." /></li>
+                <li>&nbsp;&nbsp;<input type="search" placeholder="Search..." /></li>
             </ul>
         </header>
 
         <div id="home">Home</div>
         <div style="display:none;" id="forum">
-            <input id="tpcbox" placeholder="Topic..." />
-            <input id="msgbox" placeholder="Write..." />
+            <input id="msgbox" placeholder="Message..." />
             <button id="msgbtn">Send</button>
             <hr />
-            <p id="msgs"></p>
+            <div id="msgs"></div>
         </div>
         <div style="display:none;" id="order">Order</div>
-        <div style="display:none;" id="account">Account</div>
+        <div style="display:none;" id="account">
+            <br />
+            <button id="registerer">
+                <div style="left:100px;" class="google-btn">
+                    <div class="google-icon-wrapper">
+                        <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" />
+                    </div>
+                    <p class="btn-text"><b>Sign in with google</b></p>
+                </div>
+            </button>
+        </div>
     </body>
 </html>
 <script src="stuff/js/script.js"></script>
@@ -51,16 +61,25 @@
     import { getDatabase, ref, set, child, update, remove, get }
         from "https://www.gstatic.com/firebasejs/9.9.0/firebase-database.js";
 
+    import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.9.0/firebase-auth.js";
+
+    const provider = new GoogleAuthProvider();
+
     const db = getDatabase();
+    const auth = getAuth();
+    const refdb = ref(db);
 
     var msgbox = document.getElementById("msgbox");
     var msgbtn = document.getElementById("msgbtn");
     var msgs = document.getElementById("msgs");
 
+    var registerbtn = document.getElementById("registerer");
+
     function insertData() {
-        set(ref(db, "messages/" + tpcbox.value), {
+        set(ref(db, "messages/" + msgbox.value), {
             Message: msgbox.value,
             Topic: tpcbox.value,
+            Date: Date.now(),
         })
             .then(() => {
                 alert("Success!");
@@ -68,7 +87,32 @@
             .catch((error) => {
                 alert("Unsuccessfull, " + error + "!");
             })
+        msgs.innerHTML = "";
     }
 
     msgbtn.addEventListener("click", insertData);
+
+    function getData() {
+        get(refdb, "messages/").then((snapshot) => {
+            console.log(snapshot.val().Message);
+        });
+    }
+
+    registerbtn.addEventListener("click", (e) => {
+        signInWithRedirect(auth, provider);
+    });
+
+    getRedirectResult(auth).then((result) => {
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        const user = result.user;
+    }).catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const email = error.email;
+        const credential = GoogleAuthProvider.credentialFromError(error);
+    });
+
+    getData();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
