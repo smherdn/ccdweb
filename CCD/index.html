@@ -78,7 +78,6 @@
     function insertData() {
         set(ref(db, "messages/" + msgbox.value), {
             Message: msgbox.value,
-            Topic: tpcbox.value,
             Date: Date.now(),
         })
             .then(() => {
