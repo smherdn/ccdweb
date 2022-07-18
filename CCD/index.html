@@ -14,6 +14,7 @@
                 <li><a>Order</a></li>
                 <li><a>Account</a></li>
                 <li>&nbsp;&nbsp;<input type="search" placeholder="Search..." /></li>
+                <li>&nbsp;&nbsp;<img id="profile" style="height:35px;border:2px solid black;border-radius:25px;" src="https://louisville.edu/enrollmentmanagement/images/person-icon/image" /></li>&nbsp;
             </ul>
         </header>
 
@@ -25,16 +26,43 @@
             <div id="msgs"></div>
         </div>
         <div style="display:none;" id="order">Order</div>
-        <div style="display:none;" id="account">
-            <br />
-            <button id="registerer">
-                <div style="left:100px;" class="google-btn">
-                    <div class="google-icon-wrapper">
-                        <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" />
+        <div style="display:none;text-align:center;" id="account">
+            <br /><br /><button onmouseover="this.style.height = '75px'; this.style.width = '300px';" onmouseout="this.style.height = '50px'; this.style.width = '200px';" style="color:white;cursor:pointer;height:50px;width:200px;border:2px solid dodgerblue;border-radius:10px;background:linear-gradient(dodgerblue, blue);" id="create">Create Account &nbsp; <i class="fa fa-globe"></i></button>
+            <br /><br /><div id="account_creator" class="modal">
+
+                <div class="modal_stuff">
+                    <div class="boxcreate">
+                        <form>
+                            <span class="close">&times;</span>
+                            <span class="text-center">Register</span>
+                            <div class="input-container">
+                                <input id="username" type="text" required />
+                                <label>Username</label>
+                            </div>
+                            <div class="input-container">
+                                <input id="password" type="password" required />
+                                <label>Password</label>
+                            </div>
+                            <div class="input-container">
+                                <input id="pp" type="url" />
+                                <label>Profile Photo URL <sup style="background:red;border-radius:5px;">&nbsp;Optional&nbsp;</sup></label>
+                            </div>
+                            <div id="box">
+                            </div>
+                            <button type="button" id="create_account" class="btn">create</button>
+                            <button type="button" id="login_account" class="btn">log in</button>
+                        </form>
                     </div>
-                    <p class="btn-text"><b>Sign in with google</b></p>
-                </div>
-            </button>
+                </div><br /><br /><br /><hr />
+            </div>
+            <!--Profile Displayer-->
+            <div id="profile_displayer">
+                <img id="big_pp" style="height:200px;border-radius:30px;" />
+                <h1 id="displaying_username">User</h1>
+                <hr />
+                <h4>Description</h4>
+                <p id="description" contenteditable></p>
+            </div>
         </div>
     </body>
 </html>
@@ -61,57 +89,108 @@
     import { getDatabase, ref, set, child, update, remove, get }
         from "https://www.gstatic.com/firebasejs/9.9.0/firebase-database.js";
 
-    import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.9.0/firebase-auth.js";
-
-    const provider = new GoogleAuthProvider();
-
     const db = getDatabase();
-    const auth = getAuth();
     const refdb = ref(db);
 
     var msgbox = document.getElementById("msgbox");
     var msgbtn = document.getElementById("msgbtn");
     var msgs = document.getElementById("msgs");
 
-    var registerbtn = document.getElementById("registerer");
-
     function insertData() {
-        set(ref(db, "messages/" + msgbox.value), {
-            Message: msgbox.value,
-            Date: Date.now(),
-        })
-            .then(() => {
-                alert("Success!");
+        if (!(username == "")) {
+            set(ref(db, "messages/" + msgbox.value), {
+                Message: msgbox.value,
+                Date: Date.now(),
             })
-            .catch((error) => {
-                alert("Unsuccessfull, " + error + "!");
-            })
-        msgs.innerHTML = "";
+                .then(() => {
+                    alert("Success!");
+                })
+                .catch((error) => {
+                    alert("Unsuccessfull, " + error + "!");
+                })
+        }
+        else {
+            alert("You need an account to send message!");
+        }
     }
 
     msgbtn.addEventListener("click", insertData);
 
     function getData() {
         get(refdb, "messages/").then((snapshot) => {
-            console.log(snapshot.val().Message);
+            var info = Object.keys(snapshot.val().messages)
+            info.forEach((item) => {
+                msgs.innerHTML += item + "<hr />";
+            });
         });
     }
 
-    registerbtn.addEventListener("click", (e) => {
-        signInWithRedirect(auth, provider);
-    });
-
-    getRedirectResult(auth).then((result) => {
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential.accessToken;
-        const user = result.user;
-    }).catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        const email = error.email;
-        const credential = GoogleAuthProvider.credentialFromError(error);
-    });
-
     getData();
+
+    var creater = document.querySelector("#create_account");
+    var loginer = document.querySelector("#login_account");
+    var username_input = document.querySelector("#username");
+    var description_input = document.querySelector("#description");
+    var password_input = document.querySelector("#password");
+    var profile_image_input = document.querySelector("#pp");
+
+    var username;
+    var password;
+    var description;
+    var profile_image = document.querySelector("#profile");
+    var profile_big_image = document.querySelector("#big_pp");
+
+    function createAccount() {
+        set(ref(db, "accounts/" + username_input.value), {
+            Username: username_input.value,
+            Description: "",
+            Password: password_input.value,
+            ProfileImageURL: profile_image_input.value,
+        }).then(() => {
+            profile_image.src = profile_image_input.value;
+            alert("You have a super cool account now!");
+            username = username_input.value;
+            password = password_input.value;
+            profile_image = profile_image_input.value;
+            document.querySelector("#displaying_username").innerHTML = username;
+            profile_big_image.src = profile_image_input.value;
+        }).catch((error) => {
+            alert("An error has occured, " + error + "!");
+        });
+    }
+
+    function logIn() {
+        get(ref(db, "accounts/" + username_input.value)).then((snapshot) => {
+            if (snapshot.exists()) {
+                username = snapshot.val().Username;
+                password = snapshot.val().Password;
+                description = snapshot.val().Description;
+                document.querySelector("#displaying_username").innerHTML = username;
+                description_input.innerHTML = description;
+                profile_image.src = snapshot.val().ProfileImageURL;
+                profile_big_image.src = snapshot.val().ProfileImageURL;
+            }
+            else {
+                alert("This account doesn't seem to be exist.");
+            }
+        });
+    }
+
+    function saveAsk() {
+        var asker = confirm("Save the changes?");
+        if (asker == 1) {
+            set(ref(db, "accounts/" + username), {
+                Username: username,
+                Description: description_input.innerHTML,
+                Password: password,
+                ProfileImageURL: profile_image.src,
+            });
+            alert('All the changes saved!');
+        }
+    }
+
+    creater.addEventListener("click", createAccount);
+    loginer.addEventListener("click", logIn);
+    description_input.addEventListener("blur", saveAsk);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
